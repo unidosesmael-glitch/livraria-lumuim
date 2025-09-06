@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Livraria Lumina — E-commerce de Livros</title>
+  <meta name="description" content="Loja moderna de venda de livros com busca, filtros, carrossel e carrinho (HTML + Tailwind + JS)." />
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  lucide.createIcons();
+</script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui"] },
+          colors: {
+            brand: {
+              50: '#edf8ff', 100: '#cfeeff', 200: '#a0dcff', 300: '#6cc7ff',
+              400: '#3db1ff', 500: '#0a9aff', 600: '#007be6', 700: '#0060b4',
+              800: '#004a8a', 900: '#003a6b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    .fade-in { opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .4s ease; }
+    .fade-in.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="font-sans bg-gray-50 text-gray-900">
+
+  <!-- Navbar -->
+  <header class="fixed inset-x-0 top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Left: Logo + Mobile menu button -->
+        <div class="flex items-center gap-3">
+          <button id="btnMobileMenu" class="lg:hidden p-2 rounded-xl hover:bg-gray-100" aria-label="Abrir menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <a href="#" class="flex items-center gap-2 font-semibold text-brand-700">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-2xl bg-brand-100 text-brand-700"><i data-lucide="book" class="w-6 h-6 text-indigo-600"></i>
+</span>
+            <span class="text-lg">Livraria Lumina</span>
+          </a>
+        </div>
+
+        <!-- Center: Search -->
+        <div class="hidden md:flex flex-1 mx-6">
+          <div class="relative w-full">
+            <input id="searchInput" type="text" placeholder="Buscar por título, autor ou palavra-chave..." class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2 pr-10 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- Right: Actions -->
+        <nav class="ml-4 flex items-center gap-2">
+          <div class="relative">
+            <button id="btnCategorias" class="hidden lg:inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 hover:bg-gray-50">
+              <span>Categorias</span>
+              <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
+            </button>
+            <!-- Dropdown -->
+            <div id="menuCategorias" class="invisible opacity-0 pointer-events-none absolute right-0 mt-2 w-56 rounded-xl border border-gray-200 bg-white p-2 shadow-xl transition">
+              <button data-cat="Todos" class="cat-item w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50">Todos</button>
+              <button data-cat="Ficção" class="cat-item w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50">Ficção</button>
+              <button data-cat="Negócios" class="cat-item w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50">Negócios</button>
+              <button data-cat="Tecnologia" class="cat-item w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50">Tecnologia</button>
+              <button data-cat="Autoajuda" class="cat-item w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50">Autoajuda</button>
+              <button data-cat="Educação" class="cat-item w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50">Educação</button>
+            </div>
+          </div>
+          <button id="btnLogin" class="hidden sm:inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 hover:bg-gray-50" aria-label="Login ou cadastro">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Entrar</span>
+          </button>
+          <button id="btnCart" class="relative inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 hover:bg-gray-50" aria-label="Abrir carrinho">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 12.39a2 2 0 002 1.61h7.72a2 2 0 001.98-1.68L23 6H6"/></svg>
+            <span id="cartCount" class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-brand-500 px-1.5 text-xs font-semibold text-white">0</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Mobile Search -->
+      <div class="md:hidden pb-3">
+        <div class="relative">
+          <input id="searchInputMobile" type="text" placeholder="Buscar livros..." class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2 pr-10 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="mobileMenu" class="hidden border-t border-gray-200 py-3 lg:hidden">
+        <div class="grid gap-2 sm:grid-cols-2">
+          <button class="cat-item rounded-xl border px-3 py-2 text-left hover:bg-gray-50" data-cat="Todos">Todos</button>
+          <button class="cat-item rounded-xl border px-3 py-2 text-left hover:bg-gray-50" data-cat="Ficção">Ficção</button>
+          <button class="cat-item rounded-xl border px-3 py-2 text-left hover:bg-gray-50" data-cat="Negócios">Negócios</button>
+          <button class="cat-item rounded-xl border px-3 py-2 text-left hover:bg-gray-50" data-cat="Tecnologia">Tecnologia</button>
+          <button class="cat-item rounded-xl border px-3 py-2 text-left hover:bg-gray-50" data-cat="Autoajuda">Autoajuda</button>
+          <button class="cat-item rounded-xl border px-3 py-2 text-left hover:bg-gray-50" data-cat="Educação">Educação</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-28">
+    <!-- Hero -->
+    <section class="relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div class="fade-in">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">Descubra histórias que iluminam a mente <i data-lucide="sparkles" class="w-10 h-10 text-indigo-600"></i>
+</h1>
+            <p class="mt-4 text-gray-600 max-w-xl">Encontre best-sellers, lançamentos e clássicos com ótimos preços. Frete rápido e atendimento 5 estrelas.</p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a href="#catalogo" class="inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-3 font-semibold text-white shadow-lg hover:bg-brand-700">Comprar agora</a>
+              <a href="#novidades" class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold hover:bg-gray-50">Ver novidades</a>
+            </div>
+          </div>
+          <div class="fade-in relative">
+            <div class="aspect-[16/10] w-full overflow-hidden rounded-2xl border border-gray-200 shadow-xl bg-gradient-to-br from-brand-50 to-white flex items-center justify-center">
+              <div class="w-full h-full" id="carousel">
+                <!-- Slides gerados via JS -->
+              </div>
+            </div>
+            <div class="mt-3 flex items-center justify-center gap-2" id="carouselDots"><!-- dots --></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filtros -->
+    <section id="catalogo" class="mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold">Catálogo de livros</h2>
+            <p class="text-gray-600">Filtre por categoria, preço e ordene por relevância.</p>
+          </div>
+          <div class="grid grid-cols-2 sm:flex gap-2">
+            <select id="categorySelect" class="rounded-xl border border-gray-300 bg-white px-3 py-2 focus:ring-2 focus:ring-brand-500">
+              <option value="Todos">Todos</option>
+              <option value="Ficção">Ficção</option>
+              <option value="Negócios">Negócios</option>
+              <option value="Tecnologia">Tecnologia</option>
+              <option value="Autoajuda">Autoajuda</option>
+              <option value="Educação">Educação</option>
+            </select>
+            <div class="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2">
+              <label for="priceRange" class="text-sm text-gray-600">Preço até</label>
+              <input id="priceRange" type="range" min="0" max="300" value="300" class="w-40">
+              <span id="priceValue" class="text-sm font-medium">Kz 300</span>
+            </div>
+            <select id="sortSelect" class="rounded-xl border border-gray-300 bg-white px-3 py-2 focus:ring-2 focus:ring-brand-500">
+              <option value="relevancia">Ordenar: Relevância</option>
+              <option value="preco-asc">Preço: Menor → Maior</option>
+              <option value="preco-desc">Preço: Maior → Menor</option>
+              <option value="avaliacao">Avaliação</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grid de produtos -->
+        <div id="productsGrid" class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <!-- Cards via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Novidades -->
+    <section id="novidades" class="mt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-semibold">Lançamentos & Novidades</h2>
+          <a href="#" class="text-brand-700 hover:text-brand-800 font-medium">Ver tudo →</a>
+        </div>
+        <div id="newsRow" class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Novidades via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Depoimentos -->
+    <section class="mt-20 bg-white border-y border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 class="text-2xl font-semibold text-center">O que nossos leitores dizem</h2>
+        <div id="reviewsRow" class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Depoimentos via JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <div class="flex items-center gap-2 font-semibold text-brand-700">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-2xl bg-brand-100">📚</span>
+            <span>Livraria Lumina</span>
+          </div>
+          <p class="mt-3 text-gray-600">Histórias que iluminam. Entrega para todo o país e suporte dedicado.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold">Institucional</h3>
+          <ul class="mt-3 space-y-2 text-gray-600">
+            <li><a href="#" class="hover:text-gray-900">Sobre nós</a></li>
+            <li><a href="#" class="hover:text-gray-900">Contato</a></li>
+            <li><a href="#" class="hover:text-gray-900">Carreiras</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold">Ajuda</h3>
+          <ul class="mt-3 space-y-2 text-gray-600">
+            <li><a href="#" class="hover:text-gray-900">Envio & Frete</a></li>
+            <li><a href="#" class="hover:text-gray-900">Trocas & Devoluções</a></li>
+            <li><a href="#" class="hover:text-gray-900">Privacidade</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold">Newsletter</h3>
+          <form id="newsletterForm" class="mt-3 flex gap-2">
+            <input type="email" required placeholder="Seu e-mail" class="w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-brand-500">
+            <button class="rounded-xl bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700">Assinar</button>
+          </form>
+          <p id="newsletterMsg" class="mt-2 text-sm text-gray-600"></p>
+        </div>
+      </div>
+      <div class="py-6 text-center text-sm text-gray-500">© <span id="year"></span> Livraria Lumina. Todos os direitos reservados.</div>
+    </div>
+  </footer>
+
+  <!-- Carrinho (Drawer) -->
+  <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" id="cartBackdrop"></div>
+    <aside class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl p-6 flex flex-col">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-semibold">Seu carrinho</h3>
+        <button id="btnCloseCart" class="p-2 rounded-lg hover:bg-gray-100" aria-label="Fechar carrinho">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="cartItems" class="mt-4 flex-1 overflow-auto divide-y"></div>
+      <div class="pt-4 space-y-3">
+        <div class="flex items-center justify-between text-lg font-semibold">
+          <span>Total</span>
+          <span id="cartTotal">Kz 0</span>
+        </div>
+        <section style="margin-top:20px" class="card">
+  <h2>Pagamentos</h2>
+  <p class="small">Escolhe uma forma de pagamento:</p>
+
+  <!-- PayPal -->
+  <div id="paypal-button-container" style="margin-top:12px"></div>
+
+  <!-- Cartão (Stripe exemplo) -->
+  <button id="cardPayBtn" style="margin-top:12px;padding:10px;border-radius:8px;background:#3b82f6;color:#fff;border:none;cursor:pointer">
+    Pagar com Cartão de Crédito
+  </button>
+
+  <!-- IBAN / Transferência manual -->
+  <div style="margin-top:12px;font-size:14px;color:#94a3b8">
+    <strong>Transferência bancária (IBAN)</strong><br>
+    Banco: BAI<br>
+    IBAN: AO06 0040 0000 1234 5678 9101<br>
+    Envia o comprovativo para: pagamentos@exemplo.com
+  </div>
+</section>
+
+      </div>
+    </aside>
+  </div>
+
+  <!-- Templates (hidden) -->
+  <template id="productCardTpl">
+    <div class="group rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden fade-in">
+      <div class="relative aspect-[4/5] overflow-hidden bg-gray-100">
+        <img class="product-img h-full w-full object-cover transition duration-300 group-hover:scale-105" alt="Capa do livro">
+        <div class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-medium text-gray-700 shadow">
+          <span class="star"><i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-yellow-500"></i>
+</span>
+          <span class="rating">4.8</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <h3 class="title line-clamp-2 font-semibold"></h3>
+        <p class="author mt-1 text-sm text-gray-600"></p>
+        <div class="mt-3 flex items-center justify-between">
+          <div class="price text-lg font-bold text-brand-700">Kz 0</div>
+          <button class="add-btn inline-flex items-center gap-2 rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Adicionar
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="cartItemTpl">
+    <div class="flex items-center gap-3 py-3">
+      <img class="h-16 w-12 rounded object-cover border" alt="">
+      <div class="flex-1">
+        <p class="font-medium leading-tight"></p>
+        <p class="text-sm text-gray-600"></p>
+        <div class="mt-1 flex items-center gap-2">
+          <button class="dec px-2 py-1 rounded border">-</button>
+          <span class="qty w-6 text-center">1</span>
+          <button class="inc px-2 py-1 rounded border"><i data-lucide="plus" class="w-4 h-4"></i>
+</button>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="font-semibold price">Kz 0</div>
+        <button class="remove text-sm text-red-600 hover:underline">Remover</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- App Script -->
+  <script>
+    // ---------- Dados de exemplo ----------
+    const books = [
+      { id: 1, title: 'O Programador Pragmático', author: 'Andrew Hunt', price: 180, rating: 4.8, category: 'Tecnologia', img: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1400&auto=format&fit=crop' },
+      { id: 2, title: 'Hábitos Atômicos', author: 'James Clear', price: 120, rating: 4.9, category: 'Autoajuda', img: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=1400&auto=format&fit=crop' },
+      { id: 3, title: 'Clean Code', author: 'Robert C. Martin', price: 200, rating: 4.7, category: 'Tecnologia', img: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1400&auto=format&fit=crop' },
+      { id: 4, title: 'O Poder do Hábito', author: 'Charles Duhigg', price: 110, rating: 4.6, category: 'Autoajuda', img: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0ea?q=80&w=1400&auto=format&fit=crop' },
+      { id: 5, title: 'Dom Casmurro', author: 'Machado de Assis', price: 90, rating: 4.5, category: 'Ficção', img: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1400&auto=format&fit=crop' },
+      { id: 6, title: 'Pai Rico, Pai Pobre', author: 'R. Kiyosaki', price: 130, rating: 4.4, category: 'Negócios', img: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=1400&auto=format&fit=crop' },
+      { id: 7, title: 'Algoritmos para Viver', author: 'Brian Christian', price: 150, rating: 4.5, category: 'Tecnologia', img: 'https://images.unsplash.com/photo-1510936111840-65e151ad71bb?q=80&w=1400&auto=format&fit=crop' },
+      { id: 8, title: 'Mindset', author: 'Carol Dweck', price: 140, rating: 4.3, category: 'Autoajuda', img: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=1400&auto=format&fit=crop' },
+      { id: 9, title: 'Sapiens', author: 'Yuval Noah Harari', price: 210, rating: 4.8, category: 'Educação', img: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1400&auto=format&fit=crop' },
+      { id: 10, title: 'A Startup Enxuta', author: 'Eric Ries', price: 160, rating: 4.6, category: 'Negócios', img: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1400&auto=format&fit=crop' },
+      { id: 11, title: '1984', author: 'George Orwell', price: 100, rating: 4.9, category: 'Ficção', img: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=1400&auto=format&fit=crop' },
+      { id: 12, title: 'Design Patterns', author: 'GoF', price: 240, rating: 4.7, category: 'Tecnologia', img: 'https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1400&auto=format&fit=crop' },
+    ];
+
+    const promos = [
+      { title: 'Semana da Ficção', subtitle: 'Até 30% OFF em clássicos', img: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=1600&auto=format&fit=crop' },
+      { title: 'Tecnologia em foco', subtitle: 'Livros para acelerar sua carreira', img: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop' },
+      { title: 'Autoajuda & Produtividade', subtitle: 'Novas edições imperdíveis', img: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=1600&auto=format&fit=crop' },
+    ];
+
+    const news = [
+      { title: 'Coleção Clássicos Reimpressos', blurb: 'Edições de luxo com capa dura.', img: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=1400&auto=format&fit=crop' },
+      { title: 'Novas Traduções de Ficção Científica', blurb: 'Autores premiados chegando.', img: 'https://images.unsplash.com/photo-1510936111840-65e151ad71bb?q=80&w=1400&auto=format&fit=crop' },
+      { title: 'Linha Educação com Desconto', blurb: 'Aproveite kits para vestibular.', img: 'https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1400&auto=format&fit=crop' },
+    ];
+
+    const reviews = [
+      { name: 'Beatriz', text: 'Entrega super rápida e livros impecáveis. Vou comprar de novo!', stars: 5 },
+      { name: 'Carlos', text: 'Atendimento atencioso. A navegação é fácil e as promoções valem a pena.', stars: 5 },
+      { name: 'Marta', text: 'Ótima curadoria. Encontrei títulos que não via há anos.', stars: 4 },
+    ];
+
+    // ---------- Estado ----------
+    let filters = { q: '', category: 'Todos', priceMax: 300, sort: 'relevancia' };
+    let cart = JSON.parse(localStorage.getItem('lumina:cart') || '[]');
+
+    // ---------- Util ----------
+    const fmt = (n) => `Kz ${n.toLocaleString('pt-PT')}`;
+
+    const qs = (sel, root=document) => root.querySelector(sel);
+    const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    function saveCart() { localStorage.setItem('lumina:cart', JSON.stringify(cart)); }
+
+    function notify(msg) {
+      const el = document.createElement('div');
+      el.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] rounded-xl bg-gray-900 text-white px-4 py-2 shadow-lg';
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1800);
+    }
+
+    // ---------- Render: Carrossel ----------
+    function renderCarousel() {
+      const wrap = qs('#carousel');
+      const dots = qs('#carouselDots');
+      wrap.innerHTML = '';
+      dots.innerHTML = '';
+      promos.forEach((p, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'absolute inset-0 opacity-0 transition-opacity duration-700 rounded-2xl';
+        slide.style.background = `url(${p.img}) center/cover`;
+        slide.innerHTML = `
+          <div class="absolute inset-0 bg-gradient-to-tr from-black/50 via-black/10 to-transparent rounded-2xl"></div>
+          <div class="absolute left-6 bottom-6 md:left-10 md:bottom-10 text-white">
+            <h3 class="text-2xl md:text-3xl font-semibold">${p.title}</h3>
+            <p class="opacity-90">${p.subtitle}</p>
+          </div>`;
+        wrap.appendChild(slide);
+
+        const dot = document.createElement('button');
+        dot.className = 'h-2.5 w-2.5 rounded-full bg-white/60 hover:bg-white';
+        dot.addEventListener('click', () => goToSlide(i));
+        dots.appendChild(dot);
+      });
+      let idx = 0; let timer;
+      function show(n){
+        const slides = qsa('#carousel > div');
+        const d = qsa('#carouselDots > button');
+        slides.forEach((s,j)=>{ s.style.opacity = j===n?1:0;});
+        d.forEach((b,j)=>{ b.style.opacity = j===n?1:.5; b.style.transform = j===n? 'scale(1.2)' : 'scale(1)'; });
+        idx = n;
+      }
+      function next(){ goToSlide((idx+1)%promos.length); }
+      function goToSlide(n){ show(n); restart(); }
+      function restart(){ clearInterval(timer); timer = setInterval(next, 4000); }
+      show(0); restart();
+    }
+
+    // ---------- Render: Produtos ----------
+    function renderProducts() {
+      const grid = qs('#productsGrid');
+      grid.innerHTML = '';
+      let list = books.filter(b => (
+        (filters.category === 'Todos' || b.category === filters.category) &&
+        b.price <= filters.priceMax &&
+        (b.title+" "+b.author).toLowerCase().includes(filters.q)
+      ));
+
+      switch (filters.sort) {
+        case 'preco-asc': list.sort((a,b)=>a.price-b.price); break;
+        case 'preco-desc': list.sort((a,b)=>b.price-a.price); break;
+        case 'avaliacao': list.sort((a,b)=>b.rating-a.rating); break;
+        default: /* relevancia */ list.sort((a,b)=>b.rating - a.rating || a.price - b.price);
+      }
+
+      if (!list.length) {
+        grid.innerHTML = `<div class="col-span-full text-center text-gray-600">Nenhum livro encontrado. Tente remover filtros.</div>`;
+        return;
+      }
+
+      const tpl = qs('#productCardTpl');
+      list.forEach(b => {
+        const card = tpl.content.firstElementChild.cloneNode(true);
+        qs('.product-img', card).src = b.img;
+        qs('.product-img', card).alt = `Capa do livro ${b.title}`;
+        qs('.rating', card).textContent = b.rating.toFixed(1);
+        qs('.title', card).textContent = b.title;
+        qs('.author', card).textContent = b.author;
+        qs('.price', card).textContent = fmt(b.price);
+        qs('.add-btn', card).addEventListener('click', ()=> addToCart(b.id));
+        grid.appendChild(card);
+        requestAnimationFrame(()=> card.classList.add('show'));
+      });
+    }
+
+    // ---------- Render: Novidades & Reviews ----------
+    function renderNews(){
+      const row = qs('#newsRow');
+      row.innerHTML = '';
+      news.forEach(n => {
+        const el = document.createElement('article');
+        el.className = 'rounded-2xl overflow-hidden border bg-white shadow-sm hover:shadow-md transition fade-in';
+        el.innerHTML = `
+          <div class="aspect-[16/9] bg-gray-100"><img src="${n.img}" alt="${n.title}" class="h-full w-full object-cover"></div>
+          <div class="p-4">
+            <h3 class="font-semibold">${n.title}</h3>
+            <p class="mt-1 text-gray-600">${n.blurb}</p>
+          </div>`;
+        row.appendChild(el);
+        requestAnimationFrame(()=> el.classList.add('show'));
+      });
+    }
+
+    function renderReviews(){
+      const row = qs('#reviewsRow');
+      row.innerHTML = '';
+      reviews.forEach(r => {
+        const el = document.createElement('div');
+        el.className = 'rounded-2xl border bg-white p-5 shadow-sm fade-in';
+        el.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-brand-100 flex items-center justify-center">${r.name[0]}</div>
+            <div>
+              <p class="font-semibold">${r.name}</p>
+              <p class="text-sm text-yellow-600">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</p>
+            </div>
+          </div>
+          <p class="mt-3 text-gray-700">${r.text}</p>`;
+        row.appendChild(el);
+        requestAnimationFrame(()=> el.classList.add('show'));
+      });
+    }
+
+    // ---------- Carrinho ----------
+    function addToCart(id){
+      const item = cart.find(i=>i.id===id);
+      if (item) item.qty++; else cart.push({ id, qty: 1 });
+      saveCart();
+      updateCartUI();
+      notify('Adicionado ao carrinho');
+    }
+
+    function removeFromCart(id){
+      cart = cart.filter(i=>i.id!==id);
+      saveCart();
+      updateCartUI();
+    }
+
+    function setQty(id, q){
+      const it = cart.find(i=>i.id===id);
+      if (!it) return; it.qty = Math.max(1, q); saveCart(); updateCartUI();
+    }
+
+    function cartTotals(){
+      let total = 0, count = 0;
+      cart.forEach(it => {
+        const b = books.find(b=>b.id===it.id);
+        total += b.price * it.qty; count += it.qty;
+      });
+      return { total, count };
+    }
+
+    function updateCartUI(){
+      const { total, count } = cartTotals();
+      qs('#cartCount').textContent = count;
+      qs('#cartTotal').textContent = fmt(total);
+
+      const list = qs('#cartItems');
+      list.innerHTML = '';
+      const tpl = qs('#cartItemTpl');
+      cart.forEach(it => {
+        const b = books.find(b=>b.id===it.id);
+        const row = tpl.content.firstElementChild.cloneNode(true);
+        row.querySelector('img').src = b.img;
+        row.querySelector('img').alt = b.title;
+        row.querySelector('p.font-medium').textContent = b.title;
+        row.querySelector('p.text-sm').textContent = b.author;
+        row.querySelector('.qty').textContent = it.qty;
+        row.querySelector('.price').textContent = fmt(b.price * it.qty);
+        row.querySelector('.inc').addEventListener('click', ()=> setQty(b.id, it.qty+1));
+        row.querySelector('.dec').addEventListener('click', ()=> setQty(b.id, it.qty-1));
+        row.querySelector('.remove').addEventListener('click', ()=> removeFromCart(b.id));
+        list.appendChild(row);
+      });
+    }
+
+    // ---------- Eventos UI ----------
+    function bindUI(){
+      // Busca (desktop + mobile)
+      function onSearch(e){ filters.q = e.target.value.trim().toLowerCase(); renderProducts(); }
+      qs('#searchInput').addEventListener('input', onSearch);
+      qs('#searchInputMobile').addEventListener('input', onSearch);
+
+      // Categorias (dropdown desktop + mobile botões)
+      const btnCat = qs('#btnCategorias');
+      const menuCat = qs('#menuCategorias');
+      if (btnCat) btnCat.addEventListener('click', ()=>{
+        const open = menuCat.classList.contains('!visible');
+        menuCat.classList.toggle('!visible', !open);
+        menuCat.classList.toggle('opacity-100', !open);
+        menuCat.classList.toggle('opacity-0', open);
+        menuCat.classList.toggle('pointer-events-auto', !open);
+        menuCat.classList.toggle('pointer-events-none', open);
+      });
+      qsa('.cat-item').forEach(btn => btn.addEventListener('click', (e)=>{
+        filters.category = e.currentTarget.dataset.cat;
+        qs('#categorySelect').value = filters.category;
+        renderProducts();
+      }));
+
+      // Filtros
+      qs('#categorySelect').addEventListener('change', (e)=>{ filters.category = e.target.value; renderProducts(); });
+      qs('#priceRange').addEventListener('input', (e)=>{
+        filters.priceMax = Number(e.target.value);
+        qs('#priceValue').textContent = `Kz ${filters.priceMax}`; renderProducts();
+      });
+      qs('#sortSelect').addEventListener('change', (e)=>{ filters.sort = e.target.value; renderProducts(); });
+
+      // Carrinho
+      const drawer = qs('#cartDrawer');
+      const openCart = ()=> drawer.classList.remove('hidden');
+      const closeCart = ()=> drawer.classList.add('hidden');
+      qs('#btnCart').addEventListener('click', openCart);
+      qs('#btnCloseCart').addEventListener('click', closeCart);
+      qs('#cartBackdrop').addEventListener('click', closeCart);
+
+      // Mobile menu
+      const btnMobile = qs('#btnMobileMenu');
+      const mobileMenu = qs('#mobileMenu');
+      btnMobile.addEventListener('click', ()=> mobileMenu.classList.toggle('hidden'));
+
+      // Newsletter (fake)
+      qs('#newsletterForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        qs('#newsletterMsg').textContent = 'Obrigado por se inscrever! Você receberá novidades em breve.';
+        e.target.reset();
+      });
+    }
+
+    // ---------- Inicialização ----------
+    function init(){
+      qs('#year').textContent = new Date().getFullYear();
+      renderCarousel();
+      renderProducts();
+      renderNews();
+      renderReviews();
+      updateCartUI();
+      bindUI();
+
+      // Interseção para animações de entrada
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(en => { if (en.isIntersecting) en.target.classList.add('show'); });
+      }, { threshold: .1 });
+      qsa('.fade-in').forEach(el => io.observe(el));
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+
+    // ========================
+// Pagamento PayPal
+// ========================
+if (window.paypal) {
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          description: "Pagamento pelo chatbot",
+          amount: { value: "10.00", currency_code: "USD" } // valor fixo de exemplo
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        alert("Pagamento concluído por: " + details.payer.name.given_name);
+      });
+    }
+  }).render("#paypal-button-container");
+}
+
+// ========================
+// Pagamento Cartão (Stripe exemplo)
+// ========================
+const stripe = Stripe("SUA_CHAVE_PUBLICA_STRIPE");
+
+document.getElementById("cardPayBtn").addEventListener("click", async () => {
+  alert("Aqui deves redirecionar para o Checkout do Stripe ou abrir um formulário de cartão.");
+  // Em produção: criar sessão no backend e redirecionar com stripe.redirectToCheckout(...)
+});
+
+  </script>
+  <!-- SDK do PayPal -->
+<script src="https://www.paypal.com/sdk/js?client-id=SEU_CLIENT_ID&currency=USD"></script>
+
+<!-- SDK Stripe (exemplo) -->
+<script src="https://js.stripe.com/v3/"></script>
+
+
+
+<!-- SDK PayPal -->
+<script src="https://www.paypal.com/sdk/js?client-id=SEU_CLIENT_ID&currency=USD"></script>
+
+<script>
+  // Exemplo de conversão: 1 USD = 850 AOA
+  const TAXA_CAMBIO = 850;
+
+  function renderPayPal(totalAOA) {
+    const totalUSD = (totalAOA / TAXA_CAMBIO).toFixed(2);
+
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            description: "Compra na Livraria",
+            amount: {
+              value: totalUSD,
+              currency_code: "USD"
+            }
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          alert("Pagamento concluído por " + details.payer.name.given_name);
+          // aqui podes limpar o carrinho no JS
+        });
+      }
+    }).render("#paypal-button-container");
+  }
+
+  // Exemplo inicial: carrinho com 8500 AOA
+  renderPayPal(8500);
+
+  // Botão Stripe
+  document.getElementById("btnStripe").addEventListener("click", () => {
+    alert("Aqui entra a integração Stripe");
+  });
+
+  // Botão IBAN
+  document.getElementById("btnIBAN").addEventListener("click", () => {
+    alert("Mostra instruções de pagamento via IBAN");
+  });
+</script>
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+  // A tua chave pública do Stripe (troca pela tua real)
+  const stripe = Stripe("pk_test_TUA_CHAVE_PUBLICA");
+
+  document.getElementById("btnStripe").addEventListener("click", () => {
+    // Aqui vais passar o valor real do carrinho
+    fetch("/checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: 8500, // valor em Kwanza ou converte para USD
+        currency: "usd" // Stripe trabalha em USD/EUR/...
+      }),
+    })
+    .then(res => res.json())
+    .then(session => {
+      return stripe.redirectToCheckout({ sessionId: session.id });
+    })
+    .then(result => {
+      if (result.error) {
+        alert(result.error.message);
+      }
+    });
+  });
+</script>
+
+
+</body>
+</html>
